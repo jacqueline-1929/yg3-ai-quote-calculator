@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="favicon.png" type="image/x-icon">
     <title>AI Infrastructure Quote Calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -185,11 +184,10 @@
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
     <div class="w-full max-w-4xl">
-        <!-- Header with Logo Placeholder -->
+        <!-- Header -->
         <div class="text-center mb-12">
-            <img src="yg3_logo.png" alt="Company Logo" class="h-16 mx-auto mb-4"> 
             <h1 class="text-5xl font-bold mb-4 text-white">AI Infrastructure Quote Calculator</h1>
-            <p class="text-lg text-gray-300">Get a tailored estimate for your AI project in minutes</p>
+            <p class="text-lg text-gray-300">Get a tailored estimate for AI project in minutes</p>
         </div>
 
         <!-- Main Calculator -->
@@ -340,7 +338,7 @@
             <!-- Results -->
             <div id="results" class="hidden">
                 <div class="text-center mb-10">
-                    <h2 class="text-3xl font-bold mb-4">Your AI Project Estimate</h2>
+                    <h2 class="text-3xl font-bold mb-4">yAI Project Estimate</h2>
                     <p class="text-gray-300 mb-2">Based on your selections, here is your tailored quote:</p>
                     <div class="text-5xl font-bold bg-gradient-to-r from-orange-300 to-orange-500 bg-clip-text text-transparent my-6" id="finalQuote">
                         $0
@@ -492,8 +490,8 @@
             // Restart button
             document.getElementById('restartBtn').addEventListener('click', restartQuiz);
 
-            // Export button - FIXED: Changed from exportToPDF to exportToJSON
-            document.getElementById('exportBtn').addEventListener('click', exportToJSON);
+            // Export button
+            document.getElementById('exportBtn').addEventListener('click', exportToPDF);
         }
 
         function showQuestion(index) {
@@ -663,26 +661,14 @@
             showQuestion(0);
         }
 
-        function exportToJSON() {
+        function exportToPDF() {
+            // Simple export function (for demo)
             const quote = document.getElementById('finalQuote').textContent;
-            const infraCost = document.getElementById('infraCost').textContent;
-            const serviceCost = document.getElementById('serviceCost').textContent;
-            const pmCost = document.getElementById('pmCost').textContent;
-            const totalCost = document.getElementById('totalCost').textContent;
-            const timeline = document.getElementById('timeline').textContent;
-            
             const data = {
                 companySize: state.companySize,
                 dataScale: state.dataScale,
                 businessImpact: state.businessImpact,
-                quoteDetails: {
-                    infrastructure: infraCost,
-                    services: serviceCost,
-                    projectManagement: pmCost,
-                    total: totalCost,
-                    timeline: timeline
-                },
-                finalQuote: quote,
+                quote: quote,
                 timestamp: new Date().toISOString()
             };
             
@@ -696,7 +682,7 @@
             document.body.removeChild(downloadAnchor);
             
             // Show confirmation
-            alert(`Quote exported successfully!\n\nTotal: ${quote}\n\nFile saved as JSON.`);
+            alert(`Quote exported successfully!\n\nTotal: ${quote}\n\nA detailed PDF export would require server-side generation.`);
         }
     </script>
 </body>
