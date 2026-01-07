@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Infrastructure Quote Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @font-face {
+            font-family: 'Satoshi';
+            src: url('https://fonts.cdnfonts.com/s/85546/Satoshi-Regular.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Satoshi';
+            src: url('https://fonts.cdnfonts.com/s/85546/Satoshi-Medium.woff') format('woff');
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Satoshi';
+            src: url('https://fonts.cdnfonts.com/s/85546/Satoshi-Bold.woff') format('woff');
+            font-weight: 700;
+            font-style: normal;
+        }
+
+        :root {
+            --app-background: #e6e6eb;
+            --app-gradient-start: #ffc27f;
+            --app-gradient-end: #eb9331;
+            --glass-background: rgba(0, 0, 0, 0.8);
+            --glass-input: rgba(95, 87, 87, 0.064);
+            --glass-nav: rgba(0, 0, 0, 0.68);
+            --glass-button: #cc7a20;
+            --text-primary: #ffffff;
+            --text-secondary: #ffffff;
+            --text-dark: #000000;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background: var(--app-background);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: var(--glass-background);
+            backdrop-filter: blur(3.9px);
+            border-radius: 16px;
+        }
+
+        .glass-input {
+            background: var(--glass-input);
+            backdrop-filter: blur(3.9px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            outline: none;
+            color: var(--text-secondary);
+            font-size: 18px;
+            font-weight: 300;
+            line-height: 1.2;
+            padding: 29px 31px;
+            transition: border-color 0.2s ease;
+        }
+
+        .glass-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .glass-input:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .glass-input:focus {
+            border-color: #cc7a20;
+        }
+
+        .glass-button {
+            background: var(--glass-button);
+            backdrop-filter: blur(3.9px);
+            border-radius: 16px;
+            border: none;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.2;
+            text-align: center;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            padding: 12px 24px;
+        }
+
+        .glass-button:hover {
+            opacity: 0.8;
+        }
+
+        .option-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .option-card.selected {
+            background: rgba(204, 122, 32, 0.15);
+            border-color: #cc7a20;
+            box-shadow: 0 4px 20px rgba(204, 122, 32, 0.2);
+        }
+
+        .progress-step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .progress-step.active {
+            background: #cc7a20;
+            border-color: #cc7a20;
+            color: white;
+            box-shadow: 0 0 20px rgba(204, 122, 32, 0.3);
+        }
+
+        .progress-step.completed {
+            background: rgba(204, 122, 32, 0.3);
+            border-color: #cc7a20;
+            color: white;
+        }
+
+        .progress-bar {
+            height: 2px;
+            background: rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(to right, #ffc27f, #eb9331);
+            transition: width 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .glass-input {
+                padding: 20px;
+                font-size: 16px;
+            }
+
+            .option-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 text-white">AI Infrastructure Quote Calculator</h1>
+            <p class="text-lg text-gray-300">Get a tailored estimate for AI project in minutes</p>
+        </div>
+
+        <!-- Main Calculator -->
+        <div class="glass-card p-8 mb-8">
+            <!-- Progress Bar -->
+            <div class="mb-12">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="progress-step active">1</div>
+                    <div class="progress-step">2</div>
+                    <div class="progress-step">3</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 33%"></div>
+                </div>
+                <div class="flex justify-between text-sm text-gray-400 mt-2">
+                    <span>Company Size</span>
+                    <span>Data Scale</span>
+                    <span>Business Impact</span>
+                </div>
+            </div>
+
+            <!-- Question Containers -->
+            <!-- Question 1 -->
+            <div id="question1" class="space-y-6">
+                <h2 class="text-2xl font-bold mb-6">What's the company or team size?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="option-card" data-value="small" data-base="30000">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Small Team</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">$30k base</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">1-10 people, startup or single team</p>
+                    </div>
+                    
+                    <div class="option-card" data-value="department" data-base="200000">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Department</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">$200k base</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">10-100 people, marketing/sales team</p>
+                    </div>
+                    
+                    <div class="option-card" data-value="company" data-base="1000000">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Entire Company</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">$1M base</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">100-1,000+ people, multiple departments</p>
+                    </div>
+                    
+                    <div class="option-card" data-value="enterprise" data-base="10000000">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Enterprise/Global</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">$10M+ base</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">1,000+ people, Fortune 1000 company</p>
+                    </div>
+                </div>
+                <div class="flex justify-end mt-8">
+                    <button id="next1" class="glass-button px-8 py-3">Next</button>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div id="question2" class="space-y-6 hidden">
+                <h2 class="text-2xl font-bold mb-6">What's the data scale?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="option-card" data-value="cabinet" data-multiplier="1">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Filing Cabinet</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">1×</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Spreadsheets, customer lists, transaction history</p>
+                    </div>
+                    
+                    <div class="option-card" data-value="library" data-multiplier="2">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Department Library</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">2×</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">All sales records for a year, marketing campaigns</p>
+                    </div>
+                    
+                    <div class="option-card" data-value="archive" data-multiplier="5">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Company Archive</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">5×</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">All departments' data, years of operations</p>
+                    </div>
+                    
+                    <div class="option-card" data-value="hq" data-multiplier="20">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Corporate HQ</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">20×</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Years of video/images, global operations</p>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-8">
+                    <button id="prev2" class="glass-button bg-gray-600 hover:bg-gray-700 px-8 py-3">Back</button>
+                    <button id="next2" class="glass-button px-8 py-3">Next</button>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div id="question3" class="space-y-6 hidden">
+                <h2 class="text-2xl font-bold mb-6">What's the business impact?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="option-card" data-value="assist" data-service="50000">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Assist & Automate</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">+$50k</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Chatbot, document processing, basic predictions</p>
+                    </div>
+                    
+                    <div class="option-card" data-value="transform" data-service="150000">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Transform Operations</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">+$150k</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Department workflow overhaul, predictive maintenance</p>
+                    </div>
+                    
+                    <div class="option-card" data-value="build" data-service="500000">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Build New Products</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">+$500k</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">AI-powered features, recommendation engines</p>
+                    </div>
+                    
+                    <div class="option-card" data-value="change" data-service="2000000">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-medium">Change the Business</span>
+                            <span class="text-sm bg-orange-500/20 px-3 py-1 rounded-full">+$2M</span>
+                        </div>
+                        <p class="text-gray-400 text-sm">Autonomous systems, real-time decisioning at scale</p>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-8">
+                    <button id="prev3" class="glass-button bg-gray-600 hover:bg-gray-700 px-8 py-3">Back</button>
+                    <button id="next3" class="glass-button px-8 py-3">Calculate Quote</button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="hidden">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold mb-4">yAI Project Estimate</h2>
+                    <p class="text-gray-300 mb-2">Based on your selections, here is your tailored quote:</p>
+                    <div class="text-5xl font-bold bg-gradient-to-r from-orange-300 to-orange-500 bg-clip-text text-transparent my-6" id="finalQuote">
+                        $0
+                    </div>
+                    <p class="text-gray-400 mb-8" id="quoteRange"></p>
+                </div>
+
+                <!-- Breakdown -->
+                <div class="glass-card p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4">Cost Breakdown</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center py-3 border-b border-gray-700">
+                            <span class="text-gray-300">Infrastructure & Platform</span>
+                            <span class="font-medium" id="infraCost">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3 border-b border-gray-700">
+                            <span class="text-gray-300">Implementation Services</span>
+                            <span class="font-medium" id="serviceCost">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center py-3">
+                            <span class="text-gray-300">Project Management</span>
+                            <span class="font-medium" id="pmCost">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-4 mt-4 border-t border-gray-600 text-lg font-bold">
+                            <span>Total Estimate</span>
+                            <span id="totalCost">$0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline & Next Steps -->
+                <div class="glass-card p-6 mb-6">
+                    <h3 class="text-xl font-bold mb-4">Timeline & Deployment</h3>
+                    <div class="flex items-center mb-4">
+                        <div class="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
+                        <span class="font-medium" id="timeline">60-90 days</span>
+                    </div>
+                    <p class="text-gray-300 mb-4" id="timelineDesc">Typical deployment schedule for your project scope.</p>
+                    
+                    <div class="mt-6">
+                        <h4 class="font-bold mb-3 text-gray-300">Recommended Next Steps:</h4>
+                        <ul class="space-y-2 text-gray-300" id="nextSteps">
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2">•</span>
+                                Schedule technical discovery call
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2">•</span>
+                                Review detailed project plan
+                            </li>
+                            <li class="flex items-start">
+                                <span class="text-orange-400 mr-2">•</span>
+                                Finalize implementation schedule
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="text-center mt-8">
+                    <button id="restartBtn" class="glass-button px-8 py-3 mr-4">Start New Quote</button>
+                    <button id="exportBtn" class="glass-button bg-gray-700 hover:bg-gray-600 px-8 py-3">
+                        Export to PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Note -->
+        <div class="text-center text-gray-500 text-sm">
+            <p>This is a preliminary estimate. Final quote requires technical assessment.</p>
+            <p class="mt-1">All prices in USD. Subject to change based on final requirements.</p>
+        </div>
+    </div>
+
+    <script>
+        // Quiz State
+        const state = {
+            companySize: null,
+            dataScale: null,
+            businessImpact: null,
+            baseCost: 0,
+            multiplier: 1,
+            serviceCost: 0
+        };
+
+        // DOM Elements
+        const questions = [
+            document.getElementById('question1'),
+            document.getElementById('question2'),
+            document.getElementById('question3')
+        ];
+        const results = document.getElementById('results');
+        const progressFill = document.getElementById('progressFill');
+        const progressSteps = document.querySelectorAll('.progress-step');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupEventListeners();
+            updateProgress(0);
+        });
+
+        function setupEventListeners() {
+            // Option selection
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const parent = this.closest('[id^="question"]');
+                    const allCards = parent.querySelectorAll('.option-card');
+                    
+                    // Deselect all cards in this question
+                    allCards.forEach(c => c.classList.remove('selected'));
+                    
+                    // Select this card
+                    this.classList.add('selected');
+                });
+            });
+
+            // Navigation buttons
+            document.getElementById('next1').addEventListener('click', () => {
+                const selected = document.querySelector('#question1 .option-card.selected');
+                if (selected) {
+                    state.companySize = selected.dataset.value;
+                    state.baseCost = parseInt(selected.dataset.base);
+                    showQuestion(1);
+                }
+            });
+
+            document.getElementById('next2').addEventListener('click', () => {
+                const selected = document.querySelector('#question2 .option-card.selected');
+                if (selected) {
+                    state.dataScale = selected.dataset.value;
+                    state.multiplier = parseFloat(selected.dataset.multiplier);
+                    showQuestion(2);
+                }
+            });
+
+            document.getElementById('next3').addEventListener('click', () => {
+                const selected = document.querySelector('#question3 .option-card.selected');
+                if (selected) {
+                    state.businessImpact = selected.dataset.value;
+                    state.serviceCost = parseInt(selected.dataset.service);
+                    calculateAndShowResults();
+                }
+            });
+
+            // Back buttons
+            document.getElementById('prev2').addEventListener('click', () => showQuestion(0));
+            document.getElementById('prev3').addEventListener('click', () => showQuestion(1));
+
+            // Restart button
+            document.getElementById('restartBtn').addEventListener('click', restartQuiz);
+
+            // Export button
+            document.getElementById('exportBtn').addEventListener('click', exportToPDF);
+        }
+
+        function showQuestion(index) {
+            // Hide all questions and results
+            questions.forEach(q => q.classList.add('hidden'));
+            results.classList.add('hidden');
+            
+            // Show selected question
+            questions[index].classList.remove('hidden');
+            
+            // Update progress
+            updateProgress(index);
+        }
+
+        function updateProgress(currentIndex) {
+            const percentage = ((currentIndex + 1) / 3) * 100;
+            progressFill.style.width = `${percentage}%`;
+            
+            // Update step indicators
+            progressSteps.forEach((step, index) => {
+                step.classList.remove('active', 'completed');
+                if (index < currentIndex) {
+                    step.classList.add('completed');
+                } else if (index === currentIndex) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        function calculateAndShowResults() {
+            // Calculate costs
+            const infraCost = state.baseCost * state.multiplier;
+            const pmCost = state.serviceCost * 0.15; // 15% project management
+            const totalCost = infraCost + state.serviceCost + pmCost;
+            
+            // Calculate range
+            const range = getQuoteRange(state.companySize);
+            const lowRange = totalCost * range.low;
+            const highRange = totalCost * range.high;
+            
+            // Format currency
+            const formatter = new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+            
+            // Update display
+            document.getElementById('infraCost').textContent = formatter.format(infraCost);
+            document.getElementById('serviceCost').textContent = formatter.format(state.serviceCost);
+            document.getElementById('pmCost').textContent = formatter.format(pmCost);
+            document.getElementById('totalCost').textContent = formatter.format(totalCost);
+            document.getElementById('finalQuote').textContent = formatter.format(totalCost);
+            document.getElementById('quoteRange').textContent = `Range: ${formatter.format(lowRange)} - ${formatter.format(highRange)}`;
+            
+            // Update timeline
+            updateTimeline(totalCost);
+            
+            // Show results
+            questions.forEach(q => q.classList.add('hidden'));
+            results.classList.remove('hidden');
+            updateProgress(3); // Full progress
+        }
+
+        function getQuoteRange(companySize) {
+            const ranges = {
+                'small': { low: 0.8, high: 1.5 },
+                'department': { low: 0.7, high: 1.8 },
+                'company': { low: 0.6, high: 2.0 },
+                'enterprise': { low: 0.5, high: 2.5 }
+            };
+            return ranges[companySize] || { low: 0.8, high: 1.5 };
+        }
+
+        function updateTimeline(totalCost) {
+            const timeline = document.getElementById('timeline');
+            const timelineDesc = document.getElementById('timelineDesc');
+            const nextSteps = document.getElementById('nextSteps');
+            
+            if (totalCost < 100000) {
+                timeline.textContent = '60-90 days';
+                timelineDesc.textContent = 'Typical deployment for starter AI solutions.';
+                nextSteps.innerHTML = `
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        30-minute technical discovery call
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        Data preparation assessment
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        Deployment scheduling
+                    </li>
+                `;
+            } else if (totalCost < 500000) {
+                timeline.textContent = '90-120 days';
+                timelineDesc.textContent = 'Mid-market solution with integration planning.';
+                nextSteps.innerHTML = `
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        60-minute requirements workshop
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        Architecture review session
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        Integration planning
+                    </li>
+                `;
+            } else if (totalCost < 5000000) {
+                timeline.textContent = '120-180 days';
+                timelineDesc.textContent = 'Enterprise deployment with phased rollout.';
+                nextSteps.innerHTML = `
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        Multi-stakeholder kickoff meeting
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        Comprehensive technical assessment
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        Phased implementation plan
+                    </li>
+                `;
+            } else {
+                timeline.textContent = '180-360 days';
+                timelineDesc.textContent = 'Strategic transformation with multi-phase deployment.';
+                nextSteps.innerHTML = `
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        Executive briefing with CTO
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        Enterprise architecture review
+                    </li>
+                    <li class="flex items-start">
+                        <span class="text-orange-400 mr-2">•</span>
+                        Multi-year strategic roadmap
+                    </li>
+                `;
+            }
+        }
+
+        function restartQuiz() {
+            // Reset state
+            state.companySize = null;
+            state.dataScale = null;
+            state.businessImpact = null;
+            state.baseCost = 0;
+            state.multiplier = 1;
+            state.serviceCost = 0;
+            
+            // Clear selections
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Show first question
+            showQuestion(0);
+        }
+
+        function exportToPDF() {
+            // Simple export function (for demo)
+            const quote = document.getElementById('finalQuote').textContent;
+            const data = {
+                companySize: state.companySize,
+                dataScale: state.dataScale,
+                businessImpact: state.businessImpact,
+                quote: quote,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Create download link
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `ai-quote-${Date.now()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            document.body.removeChild(downloadAnchor);
+            
+            // Show confirmation
+            alert(`Quote exported successfully!\n\nTotal: ${quote}\n\nA detailed PDF export would require server-side generation.`);
+        }
+    </script>
+</body>
+</html>
