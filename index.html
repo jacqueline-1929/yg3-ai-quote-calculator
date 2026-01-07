@@ -189,7 +189,7 @@
         <div class="text-center mb-12">
             <img src="yg3_logo.png" alt="Company Logo" class="h-16 mx-auto mb-4"> 
             <h1 class="text-5xl font-bold mb-4 text-white">AI Infrastructure Quote Calculator</h1>
-            <p class="text-lg text-gray-300">Get a tailored estimate for your AI project in minutes</p>
+            <p class="text-lg text-gray-300">Get cost estimates with 3 questions.</p>
         </div>
 
         <!-- Main Calculator -->
@@ -493,7 +493,7 @@
             document.getElementById('restartBtn').addEventListener('click', restartQuiz);
 
             // Export button
-            document.getElementById('exportBtn').addEventListener('click', exportToJSON);
+            document.getElementById('exportBtn').addEventListener('click', exportToPDF);
         }
 
         function showQuestion(index) {
@@ -663,7 +663,7 @@
             showQuestion(0);
         }
 
-        function exportToJSON() {
+        function exportToPDF() {
             const quote = document.getElementById('finalQuote').textContent;
             const infraCost = document.getElementById('infraCost').textContent;
             const serviceCost = document.getElementById('serviceCost').textContent;
